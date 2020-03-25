@@ -10,7 +10,7 @@ class Cannon:
     def __init__(self, surface):
         self.WIDTH = 533
         self.pos_x = 200
-        self.pos_y = 650
+        self.pos_y = 698
         self.img = pygame.image.load('cannon.png')
         self.direction = 'left'
         self.screen = surface
@@ -98,7 +98,7 @@ class Cannon:
 class TreasureChest:
     def __init__(self, surface):
         self.pos_x = random.randint(20, 520)
-        self.pos_y = random.randint(50, 430)
+        self.pos_y = random.randint(50, 500)
         self.img = pygame.image.load('chest1.png')
         self.rect = pygame.Rect(self.pos_x, self.pos_y, 64, 64)
         self.screen = surface
@@ -124,7 +124,7 @@ class TreasureChest:
 class CannonBall:
     def __init__(self, surface, chest_list, menu):
         self.pos_x = 0
-        self.pos_y = 660
+        self.pos_y = 708
         self.speed_x = 4.5
         self.speed_y = 3
         self.state = 'ready'
@@ -145,7 +145,7 @@ class CannonBall:
             self.speed_y = -1 * self.speed_y
         elif self.pos_y >= 800:
             self.state = 'ready'
-            self.pos_y = 657
+            self.pos_y = 708
             self.speed_x = abs(self.speed_x)
             self.speed_y = abs(self.speed_y)
 
@@ -200,7 +200,7 @@ class GameBoard:
         self.WIDTH = 600
         self.HEIGHT = 800
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        self.bg = pygame.image.load('bg.png')
+        self.bg = pygame.image.load('bg1.png')
         self.icon = pygame.image.load('icon.png')
 
     def draw(self):
@@ -236,18 +236,15 @@ class GameMenu:
         self.screen.blit(self.text.render('SCORE: {}'.format(self.score), True, (255, 255, 255)), (460, 20))
 
     def display_main_menu(self):
-        self.screen.blit(self.text.render("NEW GAME", True, (255, 255, 255)), (235, 205))
-        self.screen.blit(self.text.render("HIGHEST SCORES", True, (255, 255, 255)), (197, 390))
-        self.screen.blit(self.text.render("EXIT", True, (255, 255, 255)), (283, 573))
-        self.screen.blit(self.main_menu_img, (44, 144))
+        self.screen.blit(self.main_menu_img, (0, 0))
 
     @property
     def get_new_game(self):
-        return pygame.Rect(235, 205, 150, 25)
+        return pygame.Rect(168, 346, 250, 80)
 
     @property
     def get_exit(self):
-        return pygame.Rect(283, 573, 63, 25)
+        return pygame.Rect(168, 611, 250, 80)
 
 
 class GameRuntime:
@@ -305,6 +302,7 @@ class GameRuntime:
 
                 # MOUSE EVENTS
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    print(pygame.mouse.get_pos())
                     if self.game_menu.get_new_game.collidepoint(pygame.mouse.get_pos()):
                         self.game_state = 1
                     if self.game_menu.get_exit.collidepoint(pygame.mouse.get_pos()):
@@ -313,7 +311,6 @@ class GameRuntime:
                     pass
 
             if self.game_state == 0:
-                self.game_board.draw()
                 self.game_menu.display_main_menu()
                 pygame.display.update()
             elif self.game_state == 1:
