@@ -218,6 +218,7 @@ class GameMenu:
         self.level = 1
         self.screen = surface
         self.text = pygame.font.Font(None, 36)
+        self.main_menu_img = pygame.image.load('menu.png')
 
     @property
     def get_level(self):
@@ -234,6 +235,20 @@ class GameMenu:
     def draw(self):
         self.screen.blit(self.text.render('SCORE: {}'.format(self.score), True, (255, 255, 255)), (460, 20))
 
+    def display_main_menu(self):
+        self.screen.blit(self.text.render("NEW GAME", True, (255, 255, 255)), (235, 205))
+        self.screen.blit(self.text.render("HIGHEST SCORES", True, (255, 255, 255)), (197, 390))
+        self.screen.blit(self.text.render("EXIT", True, (255, 255, 255)), (283, 573))
+        self.screen.blit(self.main_menu_img, (44, 144))
+
+    @property
+    def get_new_game(self):
+        return pygame.Rect(235, 205, 150, 25)
+
+    @property
+    def get_exit(self):
+        return pygame.Rect(283, 573, 63, 25)
+
 
 class GameRuntime:
     def __init__(self):
@@ -243,6 +258,7 @@ class GameRuntime:
         self.game_menu = GameMenu(self.screen)
         self.treasure_chests = [TreasureChest(self.screen)]
         self.cannon_ball = CannonBall(self.screen, self.treasure_chests, self.game_menu)
+        self.game_state = 0  # Either 0 for Main menu or 1 for in game
         pygame.mixer.music.load('bg_music.wav')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.4)
@@ -289,19 +305,28 @@ class GameRuntime:
 
                 # MOUSE EVENTS
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    print(pygame.mouse.get_pos())
+                    if self.game_menu.get_new_game.collidepoint(pygame.mouse.get_pos()):
+                        self.game_state = 1
+                    if self.game_menu.get_exit.collidepoint(pygame.mouse.get_pos()):
+                        running = False
                 if event.type == pygame.MOUSEBUTTONUP:
                     pass
 
-            self.game_board.draw()
-            self.cannon.draw()
-            self.cannon_ball.draw()
-            self.game_menu.draw()
-            for treasure_chest in self.treasure_chests:
-                treasure_chest.draw()
-            if len(self.treasure_chests) < 1:
-                self.set_treasure_chests()
-            pygame.display.update()
+            if self.game_state == 0:
+                self.game_board.draw()
+                self.game_menu.display_main_menu()
+                pygame.display.update()
+            elif self.game_state == 1:
+                self.game_board.draw()
+                self.cannon.draw()
+                self.cannon_ball.draw()
+                self.game_menu.draw()
+
+                for treasure_chest in self.treasure_chests:
+                    treasure_chest.draw()
+                if len(self.treasure_chests) < 1:
+                    self.set_treasure_chests()
+                pygame.display.update()
         pygame.quit()
 
 
