@@ -57,6 +57,7 @@ class Cannon:
             if self.pos_x >= self.WIDTH:
                 self.pos_x = self.WIDTH
 
+    @property
     def get_direction(self):
         """
         Returns cannon's horizontal orientation.
@@ -64,6 +65,7 @@ class Cannon:
         """
         return self.direction
 
+    @property
     def get_position(self):
         """
         Returns cannon's horizontal position.
@@ -106,6 +108,7 @@ class TreasureChest:
         if self.status == 'normal':
             self.screen.blit(self.img, (self.pos_x, self.pos_y))
 
+    @property
     def get_rect(self):
         """
         Returns
@@ -116,6 +119,7 @@ class TreasureChest:
     def set_hit(self):
         self.status = 'hit'
         self.screen.blit(pygame.transform.rotozoom(self.img, 0, 1.2), (self.pos_x, self.pos_y))
+
 
 class CannonBall:
     def __init__(self, surface, chest_list, menu):
@@ -151,7 +155,7 @@ class CannonBall:
             self.speed_x = -1 * abs(self.speed_x)
 
         for i in range(len(self.treasure_chests) - 1, -1, -1):
-            if self.treasure_chests[i].get_rect().colliderect(pygame.Rect(self.pos_x, self.pos_y, 16, 16)):
+            if self.treasure_chests[i].get_rect.colliderect(pygame.Rect(self.pos_x, self.pos_y, 16, 16)):
                 pygame.mixer.Sound.play(self.hit_sound)
                 self.treasure_chests[i].set_hit()
                 self.game_menu.set_score()
@@ -182,6 +186,7 @@ class CannonBall:
     def set_treasure_chests(self, chest_list):
         self.treasure_chests = chest_list
 
+    @property
     def get_state(self):
         """
         Returns the state of the cannon ball -> 'ready' or 'moving'
@@ -214,6 +219,7 @@ class GameMenu:
         self.screen = surface
         self.text = pygame.font.Font(None, 36)
 
+    @property
     def get_level(self):
         return self.level
 
@@ -242,7 +248,7 @@ class GameRuntime:
         pygame.mixer.music.set_volume(0.4)
 
     def set_treasure_chests(self):
-        self.treasure_chests.extend([TreasureChest(self.screen) for x in range(self.game_menu.get_level())])
+        self.treasure_chests.extend([TreasureChest(self.screen) for x in range(self.game_menu.get_level)])
         self.cannon_ball.set_treasure_chests(self.treasure_chests)
 
     def run(self):
@@ -267,10 +273,10 @@ class GameRuntime:
                     if event.key == pygame.K_DOWN:
                         pass
                     if event.key == pygame.K_SPACE:
-                        if self.cannon_ball.get_state() == 'ready':
+                        if self.cannon_ball.get_state == 'ready':
                             self.cannon.set_sound_fire()
-                        self.cannon_ball.set_orientation(self.cannon.get_direction())
-                        self.cannon_ball.set_position(self.cannon.get_position())
+                        self.cannon_ball.set_orientation(self.cannon.get_direction)
+                        self.cannon_ball.set_position(self.cannon.get_position)
                         self.cannon_ball.set_state('moving')
 
                 # KEY IS RELEASED
