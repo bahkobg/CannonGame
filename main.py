@@ -1,12 +1,12 @@
 import pygame
 import random
 
-
 pygame.init()
 
 
 class Cannon:
     """ Describe the cannon's attributes and methods """
+
     def __init__(self, surface):
         self.WIDTH = 533
         self.pos_x = 200
@@ -96,7 +96,7 @@ class Cannon:
 class TreasureChest:
     def __init__(self, surface):
         self.pos_x = random.randint(20, 520)
-        self.pos_y = random.randint(20, 400)
+        self.pos_y = random.randint(50, 430)
         self.img = pygame.image.load('chest1.png')
         self.rect = pygame.Rect(self.pos_x, self.pos_y, 64, 64)
         self.screen = surface
@@ -116,7 +116,6 @@ class TreasureChest:
     def set_hit(self):
         self.status = 'hit'
         self.screen.blit(pygame.transform.rotozoom(self.img, 0, 1.2), (self.pos_x, self.pos_y))
-
 
 class CannonBall:
     def __init__(self, surface, chest_list, menu):
