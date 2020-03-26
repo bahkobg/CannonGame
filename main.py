@@ -3,6 +3,7 @@ import random
 
 pygame.init()
 
+
 class Cannon:
     """ Describe the cannon's attributes and methods """
 
@@ -65,11 +66,11 @@ class Cannon:
         self.speed = speed
 
     def _move(self):
-        if self.direction is 'left':
+        if self.direction == 'left':
             self.pos_x -= self.speed
             if self.pos_x <= 3:
                 self.pos_x = 3
-        elif self.direction is 'right':
+        elif self.direction == 'right':
             self.pos_x += self.speed
             if self.pos_x >= self.WIDTH:
                 self.pos_x = self.WIDTH
