@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 pygame.init()
 
@@ -238,8 +239,10 @@ class GameMenu:
     def __init__(self):
         self.score = 1
         self.level = 1
-        self.text = pygame.font.Font(None, 36)
+        self.text = pygame.font.Font(None, 18)
         self.main_menu_img = pygame.image.load('menu.png')
+        self.score_menu = pygame.image.load('score.png')
+        self.num_of_balls = pygame.image.load('bombs.png')
         self.game_over_img = pygame.image.load('game_over.png')
         self.game_over_sound = pygame.mixer.Sound('game_over.wav')
 
@@ -256,7 +259,9 @@ class GameMenu:
             self.set_level()
 
     def draw(self, surface):
-        surface.blit(self.text.render('SCORE: {}'.format(self.score), True, (255, 255, 255)), (460, 20))
+        surface.blit(self.score_menu, (460,4))
+        surface.blit(self.num_of_balls, (330, 4))
+        surface.blit(self.text.render(str(self.score), True, (255, 255, 255)), (540, 27))
 
     def display_main_menu(self, surface):
         surface.blit(self.main_menu_img, (0, 0))
