@@ -149,7 +149,7 @@ class CannonBall:
         self.pos_x = 0
         self.pos_y = 708
         self.speed_y = 3
-        self.speed_x = 1.73 * self.speed_y
+        self.speed_x = round(1.73 * self.speed_y)
         self.state = 'ready'
         self.orientation = ''
         self.img = pygame.image.load('ball.png')
@@ -160,13 +160,25 @@ class CannonBall:
         self.ball_count = 12
 
     def set_ball_count_to_default(self):
+        """
+        Set the ball count to default value
+        :return: None
+        """
         self.ball_count = 12
 
     @property
     def get_ball_count(self):
+        """
+        Returns ball count
+        :return: int
+        """
         return self.ball_count
 
     def set_decrease_ball_count(self):
+        """
+        Decrease the ball count
+        :return: None
+        """
         self.ball_count -= 1
 
     def draw(self, surface):
@@ -209,6 +221,11 @@ class CannonBall:
                 self.pos_x = x + 64
 
     def set_state(self, state):
+        """
+        Prevents multiple keypresses of SPACE key
+        :param state: str -> TODO this may be int
+        :return: None
+        """
         if self.state != 'moving':
             self.state = state
 
@@ -221,6 +238,11 @@ class CannonBall:
                 self.speed_x = abs(self.speed_x)
 
     def set_treasure_chests(self, chest_list):
+        """
+        Interface to set new treasure chest list
+        :param chest_list: list
+        :return: None
+        """
         self.treasure_chests = chest_list
 
     @property
@@ -246,6 +268,10 @@ class GameBoard:
         self.screen.blit(self.bg, (0, 0))
 
     def get_surface(self):
+        """
+        Return the main surface area
+        :return: Display object
+        """
         return self.screen
 
 
@@ -263,14 +289,34 @@ class GameMenu:
 
     @property
     def get_level(self):
+        """
+        Returns the current level
+        :return: int
+        """
         return self.level
 
+    @property
+    def get_score(self):
+        """
+        Returns the current score
+        :return: int
+        """
+        return self.score
+
     def set_level(self):
+        """
+        Level up
+        :return: None
+        """
         self.level += 1
 
     def set_score(self):
+        """
+        Increase the score and the level
+        :return: None
+        """
         self.score += 1
-        if self.score % 10 == 0:
+        if self.score % (10 * self.level) == 0:
             self.set_level()
 
     def draw(self, surface, ball_count):
@@ -286,13 +332,26 @@ class GameMenu:
 
     @property
     def get_new_game(self):
+        """
+        Returns the surface area of the new game button
+        :return: Rect
+        """
         return pygame.Rect(168, 346, 250, 80)
 
     @property
     def get_exit(self):
+        """
+        Returns the surface area of the exit button
+        :return: Rect object
+        """
         return pygame.Rect(168, 611, 250, 80)
 
     def set_game_over(self, surface):
+        """
+        Draws the game over image
+        :param surface: Surface object
+        :return: None
+        """
         surface.blit(self.game_over_img, (150, 150))
 
 
@@ -305,7 +364,7 @@ class GameRuntime:
         self.treasure_chests = [TreasureChest()]
         self.cannon_ball = CannonBall(self.treasure_chests, self.game_menu)
         self.game_state = 0  # Either 0 for main menu | 1 for in game | 2 for game over
-        self.number_of_balls = 12
+        self.number_of_balls = self.cannon_ball.get_ball_count
         pygame.mixer.music.load('bg_music.wav')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.4)
@@ -316,9 +375,15 @@ class GameRuntime:
         self.cannon_ball.set_treasure_chests(self.treasure_chests)
 
     def set_ball_count(self):
+        """
+        If the number of balls available get under 0 game over
+        :return: None
+        """
         self.number_of_balls -= 1
         if self.number_of_balls <= 0:
             self.game_state = 2
+
+
 
     @property
     def get_ball_count(self):
@@ -388,6 +453,9 @@ class GameRuntime:
                     treasure_chest.draw(self.screen)
                 if len(self.treasure_chests) < 1:
                     self.set_treasure_chests()
+                    if self.game_menu.get_score % (10 * self.game_menu.get_level) == 0:
+                        self.number_of_balls = 12
+
                 pygame.display.update()
             elif self.game_state == 2:
                 self.game_board.draw()
