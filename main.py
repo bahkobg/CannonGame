@@ -1,6 +1,5 @@
 import pygame
 import random
-import time
 
 pygame.init()
 
@@ -156,7 +155,19 @@ class CannonBall:
         self.img = pygame.image.load('ball.png')
         self.treasure_chests = chest_list
         self.hit_sound = pygame.mixer.Sound('hit.wav')
+        self.bounce = pygame.mixer.Sound('bounce.wav')
         self.game_menu = menu
+        self.ball_count = 12
+
+    def set_ball_count_to_default(self):
+        self.ball_count = 12
+
+    @property
+    def get_ball_count(self):
+        return self.ball_count
+
+    def set_decrease_ball_count(self):
+        self.ball_count -= 1
 
     def draw(self, surface):
         if self.state == 'moving':
@@ -166,6 +177,7 @@ class CannonBall:
     def _move(self):
         if self.pos_y <= 0:
             self.speed_y = -1 * self.speed_y
+            pygame.mixer.Sound.play(self.bounce)
         elif self.pos_y >= 800:
             self.state = 'ready'
             self.pos_y = 708
@@ -174,8 +186,10 @@ class CannonBall:
 
         if self.pos_x <= 0:
             self.speed_x = abs(self.speed_x)
+            pygame.mixer.Sound.play(self.bounce)
         elif self.pos_x >= 581:
             self.speed_x = -1 * abs(self.speed_x)
+            pygame.mixer.Sound.play(self.bounce)
 
         for i in range(len(self.treasure_chests) - 1, -1, -1):
             if self.treasure_chests[i].get_rect.colliderect(pygame.Rect(self.pos_x, self.pos_y, 16, 16)):
@@ -243,6 +257,7 @@ class GameMenu:
         self.main_menu_img = pygame.image.load('menu.png')
         self.score_menu = pygame.image.load('score.png')
         self.num_of_balls = pygame.image.load('bombs.png')
+        self.level_img = pygame.image.load('level.png')
         self.game_over_img = pygame.image.load('game_over.png')
         self.game_over_sound = pygame.mixer.Sound('game_over.wav')
 
@@ -258,10 +273,13 @@ class GameMenu:
         if self.score % 10 == 0:
             self.set_level()
 
-    def draw(self, surface):
-        surface.blit(self.score_menu, (460,4))
+    def draw(self, surface, ball_count):
+        surface.blit(self.score_menu, (460, 4))
         surface.blit(self.num_of_balls, (330, 4))
+        surface.blit(self.level_img, (212, 10))
+        surface.blit(self.text.render(str(ball_count), True, (255, 255, 255)), (412, 27))
         surface.blit(self.text.render(str(self.score), True, (255, 255, 255)), (540, 27))
+        surface.blit(self.text.render(str(self.level), True, (255, 255, 255)), (282, 29))
 
     def display_main_menu(self, surface):
         surface.blit(self.main_menu_img, (0, 0))
@@ -302,10 +320,17 @@ class GameRuntime:
         if self.number_of_balls <= 0:
             self.game_state = 2
 
+    @property
+    def get_ball_count(self):
+        """
+        Returns the number of cannon balls left.
+        :return: int
+        """
+        return self.number_of_balls
+
     def run(self):
         running = True
         while running:
-            # self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -357,7 +382,7 @@ class GameRuntime:
                 self.game_board.draw()
                 self.cannon.draw(self.screen)
                 self.cannon_ball.draw(self.screen)
-                self.game_menu.draw(self.screen)
+                self.game_menu.draw(self.screen, self.number_of_balls)
 
                 for treasure_chest in self.treasure_chests:
                     treasure_chest.draw(self.screen)
