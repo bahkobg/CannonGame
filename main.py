@@ -137,12 +137,19 @@ class TreasureChest:
         self.status = 'hit'
 
 
+class Tnt(TreasureChest):
+
+    def __init__(self):
+        self.imgs = [pygame.image.load('tnt' + str(x) + '.png')
+                     for x in range(1, 5)]
+
+
 class CannonBall:
     def __init__(self, chest_list, menu):
         self.pos_x = 0
         self.pos_y = 708
-        self.speed_x = 4.5
         self.speed_y = 3
+        self.speed_x = 1.73 * self.speed_y
         self.state = 'ready'
         self.orientation = ''
         self.img = pygame.image.load('ball.png')
@@ -180,18 +187,18 @@ class CannonBall:
         self.pos_y -= self.speed_y
 
     def set_position(self, x):
-        if self.state is not 'moving':
+        if self.state != 'moving':
             if self.orientation == 'left':
                 self.pos_x = x
             elif self.orientation == 'right':
                 self.pos_x = x + 64
 
     def set_state(self, state):
-        if self.state is not 'moving':
+        if self.state != 'moving':
             self.state = state
 
     def set_orientation(self, orientation):
-        if self.state is not 'moving':
+        if self.state != 'moving':
             self.orientation = orientation
             if self.orientation == 'left':
                 self.speed_x = -1 * abs(self.speed_x)
@@ -233,6 +240,8 @@ class GameMenu:
         self.level = 1
         self.text = pygame.font.Font(None, 36)
         self.main_menu_img = pygame.image.load('menu.png')
+        self.game_over_img = pygame.image.load('game_over.png')
+        self.game_over_sound = pygame.mixer.Sound('game_over.wav')
 
     @property
     def get_level(self):
@@ -260,6 +269,9 @@ class GameMenu:
     def get_exit(self):
         return pygame.Rect(168, 611, 250, 80)
 
+    def set_game_over(self, surface):
+        surface.blit(self.game_over_img, (150, 150))
+
 
 class GameRuntime:
     def __init__(self):
@@ -269,18 +281,26 @@ class GameRuntime:
         self.game_menu = GameMenu()
         self.treasure_chests = [TreasureChest()]
         self.cannon_ball = CannonBall(self.treasure_chests, self.game_menu)
-        self.game_state = 0  # Either 0 for Main menu or 1 for in game
+        self.game_state = 0  # Either 0 for main menu | 1 for in game | 2 for game over
+        self.number_of_balls = 12
         pygame.mixer.music.load('bg_music.wav')
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(0.4)
+        self.clock = pygame.time.Clock()
 
     def set_treasure_chests(self):
         self.treasure_chests.extend([TreasureChest() for x in range(self.game_menu.get_level)])
         self.cannon_ball.set_treasure_chests(self.treasure_chests)
 
+    def set_ball_count(self):
+        self.number_of_balls -= 1
+        if self.number_of_balls <= 0:
+            self.game_state = 2
+
     def run(self):
         running = True
         while running:
+            # self.clock.tick(60)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
@@ -302,6 +322,7 @@ class GameRuntime:
                     if event.key == pygame.K_SPACE:
                         if self.cannon_ball.get_state == 'ready':
                             self.cannon.set_sound_fire()
+                            self.set_ball_count()
                         self.cannon_ball.set_orientation(self.cannon.get_direction)
                         self.cannon_ball.set_position(self.cannon.get_position)
                         self.cannon_ball.set_state('moving')
@@ -338,6 +359,11 @@ class GameRuntime:
                 if len(self.treasure_chests) < 1:
                     self.set_treasure_chests()
                 pygame.display.update()
+            elif self.game_state == 2:
+                self.game_board.draw()
+                self.game_menu.set_game_over(self.screen)
+                pygame.display.update()
+
         pygame.quit()
 
 
