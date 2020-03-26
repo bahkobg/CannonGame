@@ -3,7 +3,6 @@ import random
 
 pygame.init()
 
-
 class Cannon:
     """ Describe the cannon's attributes and methods """
 
