@@ -7,28 +7,27 @@ pygame.init()
 class Cannon:
     """ Describe the cannon's attributes and methods """
 
-    def __init__(self, surface):
+    def __init__(self):
         self.WIDTH = 533
         self.pos_x = 200
         self.pos_y = 698
         self.img = pygame.image.load('cannon.png')
         self.direction = 'left'
-        self.screen = surface
         self.speed = 0
         self.cannon_sound = pygame.mixer.Sound('cart.wav')
         self.fire_sound = pygame.mixer.Sound('fire.wav')
         self.cannon_sound.set_volume(0.5)
 
-    def draw(self):
+    def draw(self, surface):
         """
         This method is called from the Runtime class to draw the on the main surface.
         It calls the cannon move method
         :return:None
         """
         if self.direction == 'right':
-            self.screen.blit(pygame.transform.flip(self.img, True, False), (self.pos_x, self.pos_y))
+            surface.blit(pygame.transform.flip(self.img, True, False), (self.pos_x, self.pos_y))
         elif self.direction == 'left':
-            self.screen.blit(self.img, (self.pos_x, self.pos_y))
+            surface.blit(self.img, (self.pos_x, self.pos_y))
         self._move()
 
     def set_direction(self, direction):
@@ -213,10 +212,9 @@ class GameBoard:
 
 
 class GameMenu:
-    def __init__(self, surface):
+    def __init__(self):
         self.score = 1
         self.level = 1
-        self.screen = surface
         self.text = pygame.font.Font(None, 36)
         self.main_menu_img = pygame.image.load('menu.png')
 
@@ -232,11 +230,11 @@ class GameMenu:
         if self.score % 10 == 0:
             self.set_level()
 
-    def draw(self):
-        self.screen.blit(self.text.render('SCORE: {}'.format(self.score), True, (255, 255, 255)), (460, 20))
+    def draw(self, surface):
+        surface.blit(self.text.render('SCORE: {}'.format(self.score), True, (255, 255, 255)), (460, 20))
 
-    def display_main_menu(self):
-        self.screen.blit(self.main_menu_img, (0, 0))
+    def display_main_menu(self, surface):
+        surface.blit(self.main_menu_img, (0, 0))
 
     @property
     def get_new_game(self):
@@ -251,8 +249,8 @@ class GameRuntime:
     def __init__(self):
         self.game_board = GameBoard()
         self.screen = self.game_board.get_surface()
-        self.cannon = Cannon(self.screen)
-        self.game_menu = GameMenu(self.screen)
+        self.cannon = Cannon()
+        self.game_menu = GameMenu()
         self.treasure_chests = [TreasureChest(self.screen)]
         self.cannon_ball = CannonBall(self.screen, self.treasure_chests, self.game_menu)
         self.game_state = 0  # Either 0 for Main menu or 1 for in game
@@ -311,13 +309,13 @@ class GameRuntime:
                     pass
 
             if self.game_state == 0:
-                self.game_menu.display_main_menu()
+                self.game_menu.display_main_menu(self.screen)
                 pygame.display.update()
             elif self.game_state == 1:
                 self.game_board.draw()
-                self.cannon.draw()
+                self.cannon.draw(self.screen)
                 self.cannon_ball.draw()
-                self.game_menu.draw()
+                self.game_menu.draw(self.screen)
 
                 for treasure_chest in self.treasure_chests:
                     treasure_chest.draw()
