@@ -11,12 +11,13 @@ class Cannon:
         self.WIDTH = 533
         self.pos_x = 200
         self.pos_y = 698
-        self.img = pygame.image.load('cannon.png')
+        self.imgs = [pygame.image.load('cannon' + str(x) + '.png') for x in range(1, 3)]
         self.direction = 'left'
         self.speed = 0
         self.cannon_sound = pygame.mixer.Sound('cart.wav')
         self.fire_sound = pygame.mixer.Sound('fire.wav')
-        self.cannon_sound.set_volume(0.5)
+        self.cannon_sound.set_volume(0.5)  # Set the volume
+        self.animation_count = 0  # Used to animate movement
 
     def draw(self, surface):
         """
@@ -24,10 +25,28 @@ class Cannon:
         It calls the cannon move method
         :return:None
         """
+
+        # Animation_count is used as index in the img list
+        if self.animation_count >= len(self.imgs):
+            self.animation_count = 0
+        # Check if the cannon is moving left or right
         if self.direction == 'right':
-            surface.blit(pygame.transform.flip(self.img, True, False), (self.pos_x, self.pos_y))
+            # If the cannon is NOT moving -> don't animate
+            if self.speed == 0:
+                surface.blit(pygame.transform.flip(self.imgs[0], True, False), (self.pos_x, self.pos_y))
+            # If the cannon is moving -> loop through the img list
+            elif self.speed > 0:
+                surface.blit(pygame.transform.flip(self.imgs[self.animation_count], True, False), (self.pos_x, self.pos_y))
+        # Check if the cannon is moving left or right
         elif self.direction == 'left':
-            surface.blit(self.img, (self.pos_x, self.pos_y))
+            # If the cannon is NOT moving -> don't animate
+            if self.speed == 0:
+                surface.blit(self.imgs[0], (self.pos_x, self.pos_y))
+            # If the cannon is moving -> loop through the img list
+            elif self.speed > 0:
+                surface.blit(self.imgs[self.animation_count], (self.pos_x, self.pos_y))
+
+        self.animation_count += 1
         self._move()
 
     def set_direction(self, direction):
