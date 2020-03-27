@@ -36,7 +36,8 @@ class Cannon:
                 surface.blit(pygame.transform.flip(self.imgs[0], True, False), (self.pos_x, self.pos_y))
             # If the cannon is moving -> loop through the img list
             elif self.speed > 0:
-                surface.blit(pygame.transform.flip(self.imgs[self.animation_count], True, False), (self.pos_x, self.pos_y))
+                surface.blit(pygame.transform.flip(self.imgs[self.animation_count], True, False),
+                             (self.pos_x, self.pos_y))
         # Check if the cannon is moving left or right
         elif self.direction == 'left':
             # If the cannon is NOT moving -> don't animate
@@ -137,15 +138,8 @@ class TreasureChest:
         self.status = 'hit'
 
 
-class Tnt(TreasureChest):
-
-    def __init__(self):
-        self.imgs = [pygame.image.load('tnt' + str(x) + '.png')
-                     for x in range(1, 5)]
-
-
 class CannonBall:
-    def __init__(self, chest_list, menu):
+    def __init__(self, chest_list, menu, bounce_rect):
         self.pos_x = 0
         self.pos_y = 708
         self.speed_y = 3
@@ -158,6 +152,8 @@ class CannonBall:
         self.bounce = pygame.mixer.Sound('bounce.wav')
         self.game_menu = menu
         self.ball_count = 12
+        self.bounce_rect = pygame.Rect(bounce_rect)
+        self._has_it_bounced = False
 
     def set_ball_count_to_default(self):
         """
@@ -187,22 +183,42 @@ class CannonBall:
             self._move()
 
     def _move(self):
+
+        # BOUNCING OFF TOP
         if self.pos_y <= 0:
-            self.speed_y = -1 * self.speed_y
+            self.speed_y = -1 * abs(self.speed_y)
             pygame.mixer.Sound.play(self.bounce)
+            self._has_it_bounced = False
+
+        # Ball gets out of the game board, reset everything to default
         elif self.pos_y >= 800:
             self.state = 'ready'
             self.pos_y = 708
             self.speed_x = abs(self.speed_x)
             self.speed_y = abs(self.speed_y)
+            self._has_it_bounced = False
 
+        # BOUNCING OFF SIDES
         if self.pos_x <= 0:
             self.speed_x = abs(self.speed_x)
             pygame.mixer.Sound.play(self.bounce)
         elif self.pos_x >= 581:
             self.speed_x = -1 * abs(self.speed_x)
             pygame.mixer.Sound.play(self.bounce)
+            self._has_it_bounced = False
 
+        # BOUNCING OFF THE IN-BOARD RECT
+        if self.bounce_rect.colliderect(pygame.Rect(self.pos_x, self.pos_y, 16, 16)):
+
+            if self.pos_y >= self.bounce_rect.top and self._has_it_bounced is False:
+                pygame.mixer.Sound.play(self.bounce)
+                self.speed_y = -1 * abs(self.speed_y)
+            elif self.pos_y+16 <= self.bounce_rect.bottom and self._has_it_bounced is False:
+                pygame.mixer.Sound.play(self.bounce)
+                self.speed_y = abs(self.speed_y)
+            self._has_it_bounced = True
+
+        # HIT ACTIONS
         for i in range(len(self.treasure_chests) - 1, -1, -1):
             if self.treasure_chests[i].get_rect.colliderect(pygame.Rect(self.pos_x, self.pos_y, 16, 16)):
                 pygame.mixer.Sound.play(self.hit_sound)
@@ -210,6 +226,7 @@ class CannonBall:
                 self.game_menu.set_score()
                 self.treasure_chests.remove(self.treasure_chests[i])
 
+        # MOVING
         self.pos_x += self.speed_x
         self.pos_y -= self.speed_y
 
@@ -260,12 +277,17 @@ class GameBoard:
         self.HEIGHT = 800
         self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
         self.bg = pygame.image.load('bg1.png')
+        self.img = pygame.image.load('bounce_surface.png')
         self.icon = pygame.image.load('icon.png')
+        self.pos_x = random.randint(20, 400)
+        self.pos_y = random.randint(50, 500)
+        self.rect = pygame.Rect(self.pos_x, self.pos_y, 128, 24)
 
     def draw(self):
         pygame.display.set_icon(self.icon)
         pygame.display.set_caption('Cannon Game Designed by Ivan Ivanov')
         self.screen.blit(self.bg, (0, 0))
+        self.screen.blit(self.img, (self.pos_x, self.pos_y))
 
     def get_surface(self):
         """
@@ -274,6 +296,22 @@ class GameBoard:
         """
         return self.screen
 
+    @property
+    def get_bounce_rect(self):
+        """
+        Return the random generated bouncing rect
+        :return:Rect
+        """
+        return self.rect
+
+    def set_new_bouncing_rect(self):
+        """
+        Sets new position for the bouncing rect
+        :return: None
+        """
+        self.pos_x = random.randint(20, 400)
+        self.pos_y = random.randint(50, 500)
+        self.rect = pygame.Rect(self.pos_x, self.pos_y, 128, 16)
 
 class GameMenu:
     def __init__(self):
@@ -362,7 +400,7 @@ class GameRuntime:
         self.cannon = Cannon()
         self.game_menu = GameMenu()
         self.treasure_chests = [TreasureChest()]
-        self.cannon_ball = CannonBall(self.treasure_chests, self.game_menu)
+        self.cannon_ball = CannonBall(self.treasure_chests, self.game_menu, self.game_board.get_bounce_rect)
         self.game_state = 0  # Either 0 for main menu | 1 for in game | 2 for game over
         self.number_of_balls = self.cannon_ball.get_ball_count
         pygame.mixer.music.load('bg_music.wav')
@@ -382,8 +420,6 @@ class GameRuntime:
         self.number_of_balls -= 1
         if self.number_of_balls <= 0:
             self.game_state = 2
-
-
 
     @property
     def get_ball_count(self):
@@ -453,9 +489,11 @@ class GameRuntime:
                     treasure_chest.draw(self.screen)
                 if len(self.treasure_chests) < 1:
                     self.set_treasure_chests()
-                    if self.game_menu.get_score % (10 * self.game_menu.get_level) == 0:
-                        self.number_of_balls = 12
 
+                if self.game_menu.get_score % 10 == 0:
+                    self.number_of_balls = 12
+                    self.game_board.set_new_bouncing_rect()
+                    self.game_menu.set_score()
                 pygame.display.update()
             elif self.game_state == 2:
                 self.game_board.draw()
