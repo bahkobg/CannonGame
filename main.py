@@ -162,6 +162,9 @@ class CannonBall:
         """
         self.ball_count = 12
 
+    def update_bounce_rect(self, rect):
+        self.bounce_rect = pygame.Rect(rect)
+
     @property
     def get_ball_count(self):
         """
@@ -493,6 +496,7 @@ class GameRuntime:
                 if self.game_menu.get_score % 10 == 0:
                     self.number_of_balls = 12
                     self.game_board.set_new_bouncing_rect()
+                    self.cannon_ball.update_bounce_rect(self.game_board.get_bounce_rect)
                     self.game_menu.set_score()
                 pygame.display.update()
             elif self.game_state == 2:
